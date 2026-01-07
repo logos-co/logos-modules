@@ -4,7 +4,16 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$script_dir"
 
-libraries_dir="$script_dir/libraries"
+base_libraries_dir="$script_dir/libraries"
+case "$(uname -s)" in
+  Darwin) platform_dir="mac" ;;
+  Linux) platform_dir="linux" ;;
+  *)
+    echo "Unsupported platform: $(uname -s)" >&2
+    exit 1
+    ;;
+esac
+libraries_dir="$base_libraries_dir/$platform_dir"
 
 if [[ ! -f .gitmodules ]]; then
   echo "No .gitmodules found in $script_dir" >&2
