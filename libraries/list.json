@@ -1,0 +1,83 @@
+[
+  {
+    "name": "logos-accounts-module",
+    "files": {
+      "mac": [
+        "accounts_module_plugin.dylib"
+      ]
+    }
+  },
+  {
+    "name": "logos-accounts-ui",
+    "files": {
+      "mac": [
+        "accounts_ui.dylib"
+      ]
+    }
+  },
+  {
+    "name": "logos-capability-module",
+    "files": {
+      "mac": [
+        "capability_module_plugin.dylib"
+      ]
+    }
+  },
+  {
+    "name": "logos-chat-module",
+    "files": {
+      "mac": [
+        "chat_plugin.dylib"
+      ]
+    }
+  },
+  {
+    "name": "logos-chat-ui",
+    "files": {
+      "mac": [
+        "chat_ui.dylib"
+      ]
+    }
+  },
+  {
+    "name": "logos-irc-module",
+    "files": {
+      "mac": [
+        "logos_irc_plugin.dylib"
+      ]
+    }
+  },
+  {
+    "name": "logos-package-manager",
+    "files": {
+      "mac": [
+        "package_manager_plugin.dylib"
+      ]
+    }
+  },
+  {
+    "name": "logos-waku-module",
+    "files": {
+      "mac": [
+        "libwaku.dylib",
+        "waku_module_plugin.dylib"
+      ]
+    }
+  },
+  {
+    "name": "logos-wallet-module",
+    "files": {
+      "mac": [
+        "wallet_module_plugin.dylib"
+      ]
+    }
+  },
+  {
+    "name": "logos-wallet-ui",
+    "files": {
+      "mac": [
+        "wallet_ui.dylib"
+      ]
+    }
+  }
+]
