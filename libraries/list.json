@@ -5,7 +5,13 @@
       "mac": [
         "accounts_module_plugin.dylib"
       ]
-    }
+    },
+    "type": "core",
+    "moduleName": "accounts_module",
+    "description": "Accounts module using go-wallet-sdk C library",
+    "dependencies": [],
+    "category": "accounts",
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-accounts-ui",
@@ -13,7 +19,15 @@
       "mac": [
         "accounts_ui.dylib"
       ]
-    }
+    },
+    "type": "ui",
+    "moduleName": "accounts_ui",
+    "description": "Accounts interface for the Logos application",
+    "dependencies": [
+      "accounts_module"
+    ],
+    "category": "accounts",
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-capability-module",
@@ -21,7 +35,13 @@
       "mac": [
         "capability_module_plugin.dylib"
       ]
-    }
+    },
+    "type": "core",
+    "moduleName": "capability_module",
+    "description": "Coordinates permissions between modules",
+    "dependencies": [],
+    "category": "security",
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-chat-module",
@@ -29,7 +49,15 @@
       "mac": [
         "chat_plugin.dylib"
       ]
-    }
+    },
+    "type": "core",
+    "moduleName": "chat",
+    "description": "A chat plugin for Logos",
+    "dependencies": [
+      "waku_module"
+    ],
+    "category": "chat",
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-chat-ui",
@@ -37,7 +65,15 @@
       "mac": [
         "chat_ui.dylib"
       ]
-    }
+    },
+    "type": "ui",
+    "moduleName": "chat_ui",
+    "description": "Chat interface for the Logos application",
+    "dependencies": [
+      "chat"
+    ],
+    "category": "chat",
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-irc-module",
@@ -45,7 +81,15 @@
       "mac": [
         "logos_irc_plugin.dylib"
       ]
-    }
+    },
+    "type": "core",
+    "moduleName": "logos_irc",
+    "description": "Logos IRC module",
+    "dependencies": [
+      "chat"
+    ],
+    "category": "chat",
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-package-manager",
@@ -53,7 +97,13 @@
       "mac": [
         "package_manager_plugin.dylib"
       ]
-    }
+    },
+    "type": "core",
+    "moduleName": "package_manager",
+    "description": "Plugin manager",
+    "dependencies": [],
+    "category": "management",
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-waku-module",
@@ -62,7 +112,13 @@
         "libwaku.dylib",
         "waku_module_plugin.dylib"
       ]
-    }
+    },
+    "type": "core",
+    "moduleName": "waku_module",
+    "description": "Waku module",
+    "dependencies": [],
+    "category": "protocol",
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-wallet-module",
@@ -70,7 +126,13 @@
       "mac": [
         "wallet_module_plugin.dylib"
       ]
-    }
+    },
+    "type": "core",
+    "moduleName": "wallet_module",
+    "description": "Wallet module using go-wallet-sdk C library",
+    "dependencies": [],
+    "category": "wallet",
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-wallet-ui",
@@ -78,6 +140,14 @@
       "mac": [
         "wallet_ui.dylib"
       ]
-    }
+    },
+    "type": "ui",
+    "moduleName": "wallet_ui",
+    "description": "Wallet interface for the Logos application",
+    "dependencies": [
+      "wallet_module"
+    ],
+    "category": "wallet",
+    "author": "Logos Core Team"
   }
 ]
