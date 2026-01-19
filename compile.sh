@@ -6,15 +6,39 @@ cd "$script_dir"
 
 base_libraries_dir="$script_dir/libraries"
 list_json_path="$base_libraries_dir/list.json"
-case "$(uname -s)" in
-  Darwin) platform_dir="mac" ;;
-  Linux) platform_dir="linux" ;;
+
+# Detect platform variant for LGX
+os_name="$(uname -s)"
+arch_name="$(uname -m)"
+
+case "$os_name" in
+  Darwin)
+    case "$arch_name" in
+      arm64) lgx_variant="darwin-arm64" ;;
+      x86_64) lgx_variant="darwin-amd64" ;;
+      *)
+        echo "Unsupported Darwin architecture: $arch_name" >&2
+        exit 1
+        ;;
+    esac
+    ;;
+  Linux)
+    case "$arch_name" in
+      x86_64) lgx_variant="linux-amd64" ;;
+      aarch64) lgx_variant="linux-arm64" ;;
+      *)
+        echo "Unsupported Linux architecture: $arch_name" >&2
+        exit 1
+        ;;
+    esac
+    ;;
   *)
-    echo "Unsupported platform: $(uname -s)" >&2
+    echo "Unsupported platform: $os_name" >&2
     exit 1
     ;;
 esac
-libraries_dir="$base_libraries_dir/$platform_dir"
+
+echo "Building for platform variant: $lgx_variant"
 
 if [[ ! -f .gitmodules ]]; then
   echo "No .gitmodules found in $script_dir" >&2
@@ -29,9 +53,23 @@ if [[ -z "$modules" ]]; then
 fi
 
 mkdir -p "$base_libraries_dir"
-rm -rf "$libraries_dir"
-mkdir -p "$libraries_dir"
 
+# Build lgx binary first
+echo "Building lgx tool..."
+if ! nix build --extra-experimental-features 'nix-command flakes' '.#lgx'; then
+  echo "Failed to build lgx tool" >&2
+  exit 1
+fi
+
+lgx_binary="$script_dir/result/bin/lgx"
+if [[ ! -x "$lgx_binary" ]]; then
+  echo "lgx binary not found at $lgx_binary" >&2
+  exit 1
+fi
+
+echo "lgx binary ready at $lgx_binary"
+
+# Store module metadata for list.json generation
 module_entries=()
 
 for module in $modules; do
@@ -44,18 +82,6 @@ for module in $modules; do
       exit 1
     fi
 
-    module_files_json=$(python3 - "$module_lib_dir" <<'PY'
-import json
-import os
-import sys
-
-lib_dir = sys.argv[1]
-entries = sorted(os.listdir(lib_dir))
-print(json.dumps(entries))
-PY
-)
-    module_files_json=${module_files_json//$'\n'/}
-    
     # Extract metadata from metadata.json
     module_metadata_path="$script_dir/$module/metadata.json"
     module_metadata_json=$(python3 - "$module_metadata_path" <<'PY'
@@ -71,7 +97,8 @@ try:
             "description": metadata.get("description", ""),
             "dependencies": metadata.get("dependencies", []),
             "category": metadata.get("category", ""),
-            "author": metadata.get("author", "")
+            "author": metadata.get("author", ""),
+            "version": metadata.get("version", "0.0.1")
         }
         print(json.dumps(result))
 except (FileNotFoundError, json.JSONDecodeError, KeyError):
@@ -81,30 +108,124 @@ except (FileNotFoundError, json.JSONDecodeError, KeyError):
         "description": "",
         "dependencies": [],
         "category": "",
-        "author": ""
+        "author": "",
+        "version": "0.0.1"
     }))
 PY
 )
     module_metadata_json=${module_metadata_json//$'\n'/}
-    module_entries+=("$module::$module_metadata_json::$module_files_json")
+    
+    # Parse metadata to get package name
+    package_name=$(echo "$module_metadata_json" | python3 -c "import json, sys; print(json.load(sys.stdin).get('name', ''))")
+    
+    if [[ -z "$package_name" ]]; then
+      echo "No package name found in metadata.json for $module" >&2
+      exit 1
+    fi
+    
+    lgx_package_path="$base_libraries_dir/${package_name}.lgx"
+    
+    # Create or update LGX package
+    if [[ ! -f "$lgx_package_path" ]]; then
+      echo "Creating new LGX package: ${package_name}.lgx"
+      
+      # Remove any stale lgx file in current directory from previous failed run
+      rm -f "${package_name}.lgx"
+      
+      "$lgx_binary" create "$package_name" || {
+        echo "Failed to create LGX package for $package_name" >&2
+        exit 1
+      }
+      
+      # Move created package to libraries directory
+      mv "${package_name}.lgx" "$lgx_package_path"
+      
+      # Update manifest.json inside the package with metadata
+      echo "Updating package manifest with metadata..."
+      python3 - "$lgx_package_path" "$module_metadata_json" <<'PY'
+import json
+import sys
+import tarfile
+import gzip
+import tempfile
+import os
+import shutil
 
-    # -RLf dereferences nix store symlinks and avoids preserving ownership to prevent permission issues when overwriting
-    cp -RLf "$module_lib_dir"/. "$libraries_dir"/
-    echo "Copied libraries for $module to $libraries_dir"
+lgx_path = sys.argv[1]
+metadata_json = sys.argv[2]
+metadata = json.loads(metadata_json)
+
+# Extract to temp directory
+temp_dir = tempfile.mkdtemp()
+try:
+    # Extract existing package
+    with tarfile.open(lgx_path, 'r:gz') as tar:
+        tar.extractall(temp_dir)
+    
+    # Read and update manifest
+    manifest_path = os.path.join(temp_dir, 'manifest.json')
+    with open(manifest_path, 'r') as f:
+        manifest = json.load(f)
+    
+    # Update manifest fields from metadata
+    manifest['name'] = metadata.get('name', manifest['name'])
+    manifest['version'] = metadata.get('version', manifest['version'])
+    manifest['description'] = metadata.get('description', manifest['description'])
+    manifest['author'] = metadata.get('author', manifest['author'])
+    manifest['type'] = metadata.get('type', manifest['type'])
+    manifest['category'] = metadata.get('category', manifest['category'])
+    manifest['dependencies'] = metadata.get('dependencies', manifest['dependencies'])
+    
+    # Write updated manifest
+    with open(manifest_path, 'w') as f:
+        json.dump(manifest, f, indent=2)
+    
+    # Recreate the package - use lgx CLI for proper deterministic packing
+    # For now, we'll trust that lgx add will update it properly when we add variants
+    
+finally:
+    shutil.rmtree(temp_dir, ignore_errors=True)
+PY
+    fi
+    
+    # Find the main library file
+    main_file=$(ls "$module_lib_dir" | head -n 1)
+    if [[ -z "$main_file" ]]; then
+      echo "No library files found in $module_lib_dir" >&2
+      exit 1
+    fi
+    
+    # The main path needs to include "lib/" since we're adding the lib directory
+    main_path="lib/$main_file"
+    
+    echo "Adding variant $lgx_variant to ${package_name}.lgx"
+    "$lgx_binary" add "$lgx_package_path" \
+      --variant "$lgx_variant" \
+      --files "$module_lib_dir" \
+      --main "$main_path" \
+      -y || {
+      echo "Failed to add variant to LGX package for $package_name" >&2
+      exit 1
+    }
+    
+    echo "Successfully added variant $lgx_variant to ${package_name}.lgx"
+    
+    # Store entry for list.json generation
+    module_entries+=("$module::$module_metadata_json::${package_name}.lgx")
   else
     echo "Failed building $module (nix build '.#lib')" >&2
     exit 1
   fi
 done
 
-python3 - "$platform_dir" "$list_json_path" "${module_entries[@]}" <<'PY'
+# Generate list.json with package references
+python3 - "$list_json_path" "${module_entries[@]}" <<'PY'
 import json
 import os
 import sys
 
-platform = sys.argv[1]
-list_path = sys.argv[2]
-entries = sys.argv[3:]
+list_path = sys.argv[1]
+entries = sys.argv[2:]
 
 def load_existing(path):
     try:
@@ -125,31 +246,20 @@ for raw in entries:
     if "::" not in raw:
         continue
     parts = raw.split("::", 2)
-    if len(parts) == 2:
-        # Old format without metadata (backward compatibility)
-        name, files_json = parts
-        metadata = {}
-    elif len(parts) == 3:
-        # New format with metadata
-        name, metadata_json, files_json = parts
-        try:
-            metadata = json.loads(metadata_json)
-        except json.JSONDecodeError:
-            metadata = {}
-    else:
+    if len(parts) != 3:
         continue
+    
+    name, metadata_json, package_filename = parts
     try:
-        files = json.loads(files_json)
+        metadata = json.loads(metadata_json)
     except json.JSONDecodeError:
-        continue
-    item = index.get(name, {"name": name, "files": {}})
-    files_map = item.get("files") or {}
-    if not isinstance(files_map, dict):
-        files_map = {}
-    else:
-        files_map = dict(files_map)  # copy so we don't mutate loaded data directly
-    files_map[platform] = files
-    item["files"] = files_map
+        metadata = {}
+    
+    item = index.get(name, {"name": name})
+    
+    # Set package field
+    item["package"] = package_filename
+    
     # Update metadata fields from metadata.json
     if "type" in metadata:
         item["type"] = metadata["type"]
@@ -163,6 +273,7 @@ for raw in entries:
         item["category"] = metadata["category"]
     if "author" in metadata:
         item["author"] = metadata["author"]
+    
     index[name] = item
 
 result = [index[k] for k in sorted(index)]
@@ -172,5 +283,5 @@ with open(list_path, "w") as f:
 PY
 
 echo "All modules built successfully."
-echo "Libraries aggregated under $libraries_dir."
+echo "LGX packages created in $base_libraries_dir"
 echo "Package list written to $list_json_path."
