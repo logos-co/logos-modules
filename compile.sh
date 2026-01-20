@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+set -x
 
 script_dir="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$script_dir"
@@ -98,7 +99,8 @@ try:
             "dependencies": metadata.get("dependencies", []),
             "category": metadata.get("category", ""),
             "author": metadata.get("author", ""),
-            "version": metadata.get("version", "0.0.1")
+            "version": metadata.get("version", "0.0.1"),
+            "main": metadata.get("main", "")
         }
         print(json.dumps(result))
 except (FileNotFoundError, json.JSONDecodeError, KeyError):
@@ -109,7 +111,8 @@ except (FileNotFoundError, json.JSONDecodeError, KeyError):
         "dependencies": [],
         "category": "",
         "author": "",
-        "version": "0.0.1"
+        "version": "0.0.1",
+        "main": ""
     }))
 PY
 )
@@ -188,20 +191,30 @@ finally:
 PY
     fi
     
-    # Find the main library file
-    main_file=$(ls "$module_lib_dir" | head -n 1)
-    if [[ -z "$main_file" ]]; then
-      echo "No library files found in $module_lib_dir" >&2
-      exit 1
-    fi
+    # Get main entry from metadata, or fall back to first file
+    main_entry=$(echo "$module_metadata_json" | python3 -c "import json, sys; print(json.load(sys.stdin).get('main', ''))")
     
-    # The main path needs to include "lib/" since we're adding the lib directory
-    main_path="lib/$main_file"
+    if [[ -n "$main_entry" ]]; then
+      # Determine extension based on platform
+      case "$os_name" in
+        Darwin) lib_ext=".dylib" ;;
+        Linux)  lib_ext=".so" ;;
+      esac
+      main_path="${main_entry}${lib_ext}"
+    else
+      # Fallback: use first file in library directory
+      main_file=$(ls "$module_lib_dir" | head -n 1)
+      if [[ -z "$main_file" ]]; then
+        echo "No library files found in $module_lib_dir" >&2
+        exit 1
+      fi
+      main_path="$main_file"
+    fi
     
     echo "Adding variant $lgx_variant to ${package_name}.lgx"
     "$lgx_binary" add "$lgx_package_path" \
       --variant "$lgx_variant" \
-      --files "$module_lib_dir" \
+      --files "$module_lib_dir/." \
       --main "$main_path" \
       -y || {
       echo "Failed to add variant to LGX package for $package_name" >&2
