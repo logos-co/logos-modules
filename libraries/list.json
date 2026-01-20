@@ -11,7 +11,8 @@
     "description": "Accounts module using go-wallet-sdk C library",
     "dependencies": [],
     "category": "accounts",
-    "author": "Logos Core Team"
+    "author": "Logos Core Team",
+    "package": "accounts_module.lgx"
   },
   {
     "name": "logos-accounts-ui",
@@ -27,7 +28,8 @@
       "accounts_module"
     ],
     "category": "accounts",
-    "author": "Logos Core Team"
+    "author": "Logos Core Team",
+    "package": "accounts_ui.lgx"
   },
   {
     "name": "logos-capability-module",
@@ -41,7 +43,8 @@
     "description": "Coordinates permissions between modules",
     "dependencies": [],
     "category": "security",
-    "author": "Logos Core Team"
+    "author": "Logos Core Team",
+    "package": "capability_module.lgx"
   },
   {
     "name": "logos-chat-module",
@@ -57,7 +60,8 @@
       "waku_module"
     ],
     "category": "chat",
-    "author": "Logos Core Team"
+    "author": "Logos Core Team",
+    "package": "chat.lgx"
   },
   {
     "name": "logos-chat-ui",
@@ -73,7 +77,8 @@
       "chat"
     ],
     "category": "chat",
-    "author": "Logos Core Team"
+    "author": "Logos Core Team",
+    "package": "chat_ui.lgx"
   },
   {
     "name": "logos-irc-module",
@@ -89,7 +94,8 @@
       "chat"
     ],
     "category": "chat",
-    "author": "Logos Core Team"
+    "author": "Logos Core Team",
+    "package": "logos_irc.lgx"
   },
   {
     "name": "logos-package-manager",
@@ -103,7 +109,8 @@
     "description": "Plugin manager",
     "dependencies": [],
     "category": "management",
-    "author": "Logos Core Team"
+    "author": "Logos Core Team",
+    "package": "package_manager.lgx"
   },
   {
     "name": "logos-waku-module",
@@ -118,7 +125,8 @@
     "description": "Waku module",
     "dependencies": [],
     "category": "protocol",
-    "author": "Logos Core Team"
+    "author": "Logos Core Team",
+    "package": "waku_module.lgx"
   },
   {
     "name": "logos-wallet-module",
@@ -132,7 +140,8 @@
     "description": "Wallet module using go-wallet-sdk C library",
     "dependencies": [],
     "category": "wallet",
-    "author": "Logos Core Team"
+    "author": "Logos Core Team",
+    "package": "wallet_module.lgx"
   },
   {
     "name": "logos-wallet-ui",
@@ -148,6 +157,7 @@
       "wallet_module"
     ],
     "category": "wallet",
-    "author": "Logos Core Team"
+    "author": "Logos Core Team",
+    "package": "wallet_ui.lgx"
   }
 ]
