@@ -1,26 +1,17 @@
 [
   {
     "name": "logos-accounts-module",
-    "files": {
-      "mac": [
-        "accounts_module_plugin.dylib"
-      ]
-    },
+    "package": "accounts_module.lgx",
     "type": "core",
     "moduleName": "accounts_module",
     "description": "Accounts module using go-wallet-sdk C library",
     "dependencies": [],
     "category": "accounts",
-    "author": "Logos Core Team",
-    "package": "accounts_module.lgx"
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-accounts-ui",
-    "files": {
-      "mac": [
-        "accounts_ui.dylib"
-      ]
-    },
+    "package": "accounts_ui.lgx",
     "type": "ui",
     "moduleName": "accounts_ui",
     "description": "Accounts interface for the Logos application",
@@ -28,31 +19,21 @@
       "accounts_module"
     ],
     "category": "accounts",
-    "author": "Logos Core Team",
-    "package": "accounts_ui.lgx"
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-capability-module",
-    "files": {
-      "mac": [
-        "capability_module_plugin.dylib"
-      ]
-    },
+    "package": "capability_module.lgx",
     "type": "core",
     "moduleName": "capability_module",
     "description": "Coordinates permissions between modules",
     "dependencies": [],
     "category": "security",
-    "author": "Logos Core Team",
-    "package": "capability_module.lgx"
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-chat-module",
-    "files": {
-      "mac": [
-        "chat_plugin.dylib"
-      ]
-    },
+    "package": "chat.lgx",
     "type": "core",
     "moduleName": "chat",
     "description": "A chat plugin for Logos",
@@ -60,16 +41,11 @@
       "waku_module"
     ],
     "category": "chat",
-    "author": "Logos Core Team",
-    "package": "chat.lgx"
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-chat-ui",
-    "files": {
-      "mac": [
-        "chat_ui.dylib"
-      ]
-    },
+    "package": "chat_ui.lgx",
     "type": "ui",
     "moduleName": "chat_ui",
     "description": "Chat interface for the Logos application",
@@ -77,16 +53,11 @@
       "chat"
     ],
     "category": "chat",
-    "author": "Logos Core Team",
-    "package": "chat_ui.lgx"
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-irc-module",
-    "files": {
-      "mac": [
-        "logos_irc_plugin.dylib"
-      ]
-    },
+    "package": "logos_irc.lgx",
     "type": "core",
     "moduleName": "logos_irc",
     "description": "Logos IRC module",
@@ -94,62 +65,41 @@
       "chat"
     ],
     "category": "chat",
-    "author": "Logos Core Team",
-    "package": "logos_irc.lgx"
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-package-manager",
-    "files": {
-      "mac": [
-        "package_manager_plugin.dylib"
-      ]
-    },
+    "package": "package_manager.lgx",
     "type": "core",
     "moduleName": "package_manager",
     "description": "Plugin manager",
     "dependencies": [],
     "category": "management",
-    "author": "Logos Core Team",
-    "package": "package_manager.lgx"
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-waku-module",
-    "files": {
-      "mac": [
-        "libwaku.dylib",
-        "waku_module_plugin.dylib"
-      ]
-    },
+    "package": "waku_module.lgx",
     "type": "core",
     "moduleName": "waku_module",
     "description": "Waku module",
     "dependencies": [],
     "category": "protocol",
-    "author": "Logos Core Team",
-    "package": "waku_module.lgx"
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-wallet-module",
-    "files": {
-      "mac": [
-        "wallet_module_plugin.dylib"
-      ]
-    },
+    "package": "wallet_module.lgx",
     "type": "core",
     "moduleName": "wallet_module",
     "description": "Wallet module using go-wallet-sdk C library",
     "dependencies": [],
     "category": "wallet",
-    "author": "Logos Core Team",
-    "package": "wallet_module.lgx"
+    "author": "Logos Core Team"
   },
   {
     "name": "logos-wallet-ui",
-    "files": {
-      "mac": [
-        "wallet_ui.dylib"
-      ]
-    },
+    "package": "wallet_ui.lgx",
     "type": "ui",
     "moduleName": "wallet_ui",
     "description": "Wallet interface for the Logos application",
@@ -157,7 +107,6 @@
       "wallet_module"
     ],
     "category": "wallet",
-    "author": "Logos Core Team",
-    "package": "wallet_ui.lgx"
+    "author": "Logos Core Team"
   }
 ]
