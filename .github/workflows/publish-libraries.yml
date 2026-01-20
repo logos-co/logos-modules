@@ -20,14 +20,7 @@ jobs:
         run: |
           mkdir -p upload
           cp -a libraries/list.json upload/ 2>/dev/null || true
-          for platform in mac linux; do
-            if [ -d "libraries/$platform" ]; then
-              while IFS= read -r -d '' file; do
-                base=$(basename "$file")
-                cp "$file" "upload/${platform}-${base}"
-              done < <(find "libraries/$platform" -maxdepth 1 -type f -print0)
-            fi
-          done
+          find "libraries" -maxdepth 1 -name "*.lgx" -type f -exec cp {} upload/ \;
           files_count=$(find upload -maxdepth 1 -type f | wc -l)
           echo "files=$files_count" >> "$GITHUB_OUTPUT"
           if [ "$files_count" -eq 0 ]; then
