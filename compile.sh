@@ -15,8 +15,8 @@ arch_name="$(uname -m)"
 case "$os_name" in
   Darwin)
     case "$arch_name" in
-      arm64) lgx_variant="darwin-arm64" ;;
-      x86_64) lgx_variant="darwin-amd64" ;;
+      arm64) lgx_variants=("darwin-arm64") ;;
+      x86_64) lgx_variants=("darwin-amd64") ;;
       *)
         echo "Unsupported Darwin architecture: $arch_name" >&2
         exit 1
@@ -25,8 +25,8 @@ case "$os_name" in
     ;;
   Linux)
     case "$arch_name" in
-      x86_64) lgx_variant="linux-amd64" ;;
-      aarch64) lgx_variant="linux-arm64" ;;
+      x86_64) lgx_variants=("linux-amd64" "linux-x86_64") ;;
+      aarch64) lgx_variants=("linux-arm64") ;;
       *)
         echo "Unsupported Linux architecture: $arch_name" >&2
         exit 1
@@ -39,7 +39,7 @@ case "$os_name" in
     ;;
 esac
 
-echo "Building for platform variant: $lgx_variant"
+echo "Building for platform variants: ${lgx_variants[*]}"
 
 if [[ ! -f .gitmodules ]]; then
   echo "No .gitmodules found in $script_dir" >&2
@@ -217,17 +217,18 @@ PY
       main_path="$main_file"
     fi
     
-    echo "Adding variant $lgx_variant to ${package_name}.lgx"
-    "$lgx_binary" add "$lgx_package_path" \
-      --variant "$lgx_variant" \
-      --files "$module_lib_dir/." \
-      --main "$main_path" \
-      -y || {
-      echo "Failed to add variant to LGX package for $package_name" >&2
-      exit 1
-    }
-    
-    echo "Successfully added variant $lgx_variant to ${package_name}.lgx"
+    for lgx_variant in "${lgx_variants[@]}"; do
+      echo "Adding variant $lgx_variant to ${package_name}.lgx"
+      "$lgx_binary" add "$lgx_package_path" \
+        --variant "$lgx_variant" \
+        --files "$module_lib_dir/." \
+        --main "$main_path" \
+        -y || {
+        echo "Failed to add variant to LGX package for $package_name" >&2
+        exit 1
+      }
+      echo "Successfully added variant $lgx_variant to ${package_name}.lgx"
+    done
     
     # Store entry for list.json generation
     module_entries+=("$module::$module_metadata_json::${package_name}.lgx")
