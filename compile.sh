@@ -74,6 +74,12 @@ echo "lgx binary ready at $lgx_binary"
 module_entries=()
 
 for module in $modules; do
+  # Skip modules whose directories don't exist
+  if [[ ! -d "$script_dir/$module" ]]; then
+    echo "Skipping $module: directory does not exist"
+    continue
+  fi
+
   echo "Building $module..."
   if (cd "$module" && nix build --extra-experimental-features 'nix-command flakes' '.#lib'); then
     echo "Built $module"
