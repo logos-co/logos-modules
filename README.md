@@ -15,6 +15,7 @@ to compile all modules in one go
 
 | Path | Repository |
 | --- | --- |
+| logos-blockchain-module | https://github.com/logos-blockchain/logos-blockchain-module |
 | logos-waku-module | https://github.com/logos-co/logos-waku-module |
 | logos-wallet-module | https://github.com/logos-co/logos-wallet-module |
 | logos-chat-module | https://github.com/logos-co/logos-chat-module |
