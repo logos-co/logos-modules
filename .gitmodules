@@ -28,3 +28,6 @@
 [submodule "logos-accounts-ui"]
 	path = logos-accounts-ui
 	url = https://github.com/logos-co/logos-accounts-ui
+[submodule "logos-chatsdk-ui"]
+	path = logos-chatsdk-ui
+	url = https://github.com/logos-co/logos-chatsdk-ui
