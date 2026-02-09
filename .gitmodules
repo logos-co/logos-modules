@@ -10,9 +10,9 @@
 [submodule "logos-irc-module"]
 	path = logos-irc-module
 	url = https://github.com/logos-co/logos-irc-module
-[submodule "logos-package-manager"]
-	path = logos-package-manager
-	url = https://github.com/logos-co/logos-package-manager
+[submodule "logos-package-manager-module"]
+	path = logos-package-manager-module
+	url = https://github.com/logos-co/logos-package-manager-module
 [submodule "logos-capability-module"]
 	path = logos-capability-module
 	url = https://github.com/logos-co/logos-capability-module
