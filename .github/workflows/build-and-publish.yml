@@ -1,0 +1,109 @@
+name: Build and Publish
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            variant: linux-amd64
+          - os: ubuntu-24.04-arm
+            variant: linux-arm64
+          - os: macos-15-intel
+            variant: darwin-amd64
+          - os: macos-15
+            variant: darwin-arm64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build modules
+        run: |
+          set -euo pipefail
+
+          modules=$(git config --file .gitmodules --get-regexp path | awk '{print $2}')
+          mkdir -p build-output
+
+          for module in $modules; do
+            echo "=== Building $module ==="
+            if (cd "$module" && nix build .#lib); then
+              echo "Built $module"
+              mkdir -p "build-output/${module}/lib"
+              cp -rL "$module/result/lib/." "build-output/${module}/lib/"
+            else
+              echo "::warning::Failed to build $module on ${{ matrix.variant }}"
+            fi
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.variant }}
+          path: build-output/
+          retention-days: 1
+
+  package:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build lgx tool
+        run: |
+          nix build .#lgx
+          echo "LGX=$(readlink -f result/bin/lgx)" >> "$GITHUB_ENV"
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Package modules
+        run: |
+          export ARTIFACTS_DIR="artifacts"
+          bash ci/package-modules.sh
+
+      - name: Prepare release tag
+        id: tag
+        run: |
+          short_sha="${GITHUB_SHA::7}"
+          date_str="$(date -u +%Y%m%d)"
+          tag="build-${date_str}-${short_sha}"
+          name="Build $(date -u +%Y-%m-%d) (${short_sha})"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: ${{ steps.tag.outputs.name }}
+          body: "Automated build from ${{ github.sha }}"
+          files: |
+            output/*.lgx
+            output/list.json
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
