@@ -19,7 +19,7 @@ to compile all modules in one go
 | logos-wallet-module | https://github.com/logos-co/logos-wallet-module |
 | logos-chat-module | https://github.com/logos-co/logos-chat-module |
 | logos-irc-module | https://github.com/logos-co/logos-irc-module |
-| logos-package-manager | https://github.com/logos-co/logos-package-manager |
+| logos-package-manager-module | https://github.com/logos-co/logos-package-manager-module |
 | logos-capability-module | https://github.com/logos-co/logos-capability-module |
 | logos-accounts-module | https://github.com/logos-co/logos-accounts-module |
 | logos-wallet-ui | https://github.com/logos-co/logos-wallet-ui |
