@@ -37,3 +37,6 @@
 [submodule "logos-blockchain-ui"]
 	path = logos-blockchain-ui
 	url = https://github.com/logos-blockchain/logos-blockchain-ui
+[submodule "logos-storage-module"]
+	path = logos-storage-module
+	url = https://github.com/logos-co/logos-storage-module
