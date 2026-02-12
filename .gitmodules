@@ -28,3 +28,9 @@
 [submodule "logos-accounts-ui"]
 	path = logos-accounts-ui
 	url = https://github.com/logos-co/logos-accounts-ui
+[submodule "logos-blockchain-module"]
+	path = logos-blockchain-module
+	url = https://github.com/logos-blockchain/logos-blockchain-module
+[submodule "logos-execution-zone-module"]
+	path = logos-execution-zone-module
+	url = https://github.com/logos-blockchain/logos-execution-zone-module
