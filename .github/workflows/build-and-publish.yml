@@ -8,19 +8,35 @@ permissions:
   contents: write
 
 jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.modules.outputs.modules }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: List modules
+        id: modules
+        run: |
+          modules=$(git config --file .gitmodules --get-regexp path | awk '{print $2}' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "modules=$modules" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: discover
     strategy:
       fail-fast: false
       matrix:
-        include:
+        variant:
           - os: ubuntu-24.04
-            variant: linux-amd64
+            name: linux-amd64
           - os: ubuntu-24.04-arm
-            variant: linux-arm64
+            name: linux-arm64
           - os: macos-15
-            variant: darwin-arm64
+            name: darwin-arm64
+        module: ${{ fromJson(needs.discover.outputs.modules) }}
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.variant.os }}
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
@@ -31,32 +47,28 @@ jobs:
 
       - uses: DeterminateSystems/magic-nix-cache-action@main
 
-      - name: Build modules
+      - name: Build ${{ matrix.module }}
+        id: build
         run: |
-          set -euo pipefail
+          cd "${{ matrix.module }}"
+          nix bundle --bundler github:logos-co/nix-bundle-dir#permissive -o result .#lib
 
-          modules=$(git config --file .gitmodules --get-regexp path | awk '{print $2}')
-          mkdir -p build-output
-
-          for module in $modules; do
-            echo "=== Building $module ==="
-            if (cd "$module" && nix bundle --bundler github:logos-co/nix-bundle-dir#permissive -o result .#lib); then
-              echo "Built $module"
-              mkdir -p "build-output/${module}"
-              cp -rL "$module/result/." "build-output/${module}/"
-            else
-              echo "::warning::Failed to build $module on ${{ matrix.variant }}"
-            fi
-          done
+      - name: Collect output
+        if: steps.build.outcome == 'success'
+        run: |
+          mkdir -p "build-output/build-${{ matrix.variant.name }}/${{ matrix.module }}"
+          cp -rL "${{ matrix.module }}/result/." "build-output/build-${{ matrix.variant.name }}/${{ matrix.module }}/"
 
       - uses: actions/upload-artifact@v4
+        if: steps.build.outcome == 'success'
         with:
-          name: build-${{ matrix.variant }}
+          name: build-${{ matrix.variant.name }}--${{ matrix.module }}
           path: build-output/
           retention-days: 1
 
   package:
-    needs: build
+    needs: [discover, build]
+    if: always()
     runs-on: ubuntu-latest
 
     steps:
@@ -76,6 +88,8 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
+          pattern: build-*
+          merge-multiple: true
 
       - name: Package modules
         run: |
@@ -91,7 +105,7 @@ jobs:
           with open("output/list.json") as f:
               modules = json.load(f)
 
-          all_variants = ["linux-amd64", "linux-arm64", "darwin-amd64", "darwin-arm64"]
+          all_variants = ["linux-amd64", "linux-arm64", "darwin-arm64"]
           header = "| Module | " + " | ".join(all_variants) + " |"
           sep = "|--------|" + "|".join([":---:" for _ in all_variants]) + "|"
 
@@ -106,7 +120,6 @@ jobs:
 
           table = "\n".join([header, sep] + rows)
 
-          # Use multiline output
           import os
           delim = "EOF_TABLE"
           print(f"table<<{delim}")
