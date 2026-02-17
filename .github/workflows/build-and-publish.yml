@@ -42,10 +42,10 @@ jobs:
 
           for module in $modules; do
             echo "=== Building $module ==="
-            if (cd "$module" && nix build .#lib); then
+            if (cd "$module" && nix bundle --bundler github:logos-co/nix-bundle-dir#permissive -o result .#lib); then
               echo "Built $module"
-              mkdir -p "build-output/${module}/lib"
-              cp -rL "$module/result/lib/." "build-output/${module}/lib/"
+              mkdir -p "build-output/${module}"
+              cp -rL "$module/result/." "build-output/${module}/"
             else
               echo "::warning::Failed to build $module on ${{ matrix.variant }}"
             fi
