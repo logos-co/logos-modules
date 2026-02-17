@@ -149,45 +149,39 @@ PY
 import json
 import sys
 import tarfile
-import gzip
-import tempfile
-import os
-import shutil
+import io
 
 lgx_path = sys.argv[1]
-metadata_json = sys.argv[2]
-metadata = json.loads(metadata_json)
+metadata = json.loads(sys.argv[2])
 
-# Extract to temp directory
-temp_dir = tempfile.mkdtemp()
-try:
-    # Extract existing package
-    with tarfile.open(lgx_path, 'r:gz') as tar:
-        tar.extractall(temp_dir)
-    
-    # Read and update manifest
-    manifest_path = os.path.join(temp_dir, 'manifest.json')
-    with open(manifest_path, 'r') as f:
-        manifest = json.load(f)
-    
-    # Update manifest fields from metadata
-    manifest['name'] = metadata.get('name', manifest['name'])
-    manifest['version'] = metadata.get('version', manifest['version'])
-    manifest['description'] = metadata.get('description', manifest['description'])
-    manifest['author'] = metadata.get('author', manifest['author'])
-    manifest['type'] = metadata.get('type', manifest['type'])
-    manifest['category'] = metadata.get('category', manifest['category'])
-    manifest['dependencies'] = metadata.get('dependencies', manifest['dependencies'])
-    
-    # Write updated manifest
-    with open(manifest_path, 'w') as f:
-        json.dump(manifest, f, indent=2)
-    
-    # Recreate the package - use lgx CLI for proper deterministic packing
-    # For now, we'll trust that lgx add will update it properly when we add variants
-    
-finally:
-    shutil.rmtree(temp_dir, ignore_errors=True)
+# Read all members from the original archive
+with tarfile.open(lgx_path, 'r:gz') as tar:
+    members = []
+    for member in tar.getmembers():
+        if member.isfile():
+            members.append((member, tar.extractfile(member).read()))
+        else:
+            members.append((member, None))
+
+# Patch the manifest content
+patched = []
+for member, data in members:
+    if member.name == 'manifest.json':
+        manifest = json.loads(data)
+        for key in ('name', 'version', 'description', 'author', 'type', 'category', 'dependencies'):
+            if metadata.get(key):
+                manifest[key] = metadata[key]
+        data = json.dumps(manifest, indent=2).encode()
+        member.size = len(data)
+    patched.append((member, data))
+
+# Rewrite the archive preserving original member metadata
+with tarfile.open(lgx_path, 'w:gz', format=tarfile.GNU_FORMAT) as tar:
+    for member, data in patched:
+        if data is not None:
+            tar.addfile(member, io.BytesIO(data))
+        else:
+            tar.addfile(member)
 PY
     fi
     

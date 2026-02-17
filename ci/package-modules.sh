@@ -115,6 +115,47 @@ PY
 
   mv "${package_name}.lgx" "$lgx_package_path"
 
+  # Patch manifest.json inside the LGX package with module metadata
+  echo "Updating package manifest with metadata..."
+  python3 - "$lgx_package_path" "$module_metadata_json" <<'PY'
+import json
+import sys
+import tarfile
+import io
+
+lgx_path = sys.argv[1]
+metadata = json.loads(sys.argv[2])
+
+# Read all members from the original archive
+with tarfile.open(lgx_path, 'r:gz') as tar:
+    members = []
+    for member in tar.getmembers():
+        if member.isfile():
+            members.append((member, tar.extractfile(member).read()))
+        else:
+            members.append((member, None))
+
+# Patch the manifest content
+patched = []
+for member, data in members:
+    if member.name == 'manifest.json':
+        manifest = json.loads(data)
+        for key in ('name', 'version', 'description', 'author', 'type', 'category', 'dependencies'):
+            if metadata.get(key):
+                manifest[key] = metadata[key]
+        data = json.dumps(manifest, indent=2).encode()
+        member.size = len(data)
+    patched.append((member, data))
+
+# Rewrite the archive preserving original member metadata
+with tarfile.open(lgx_path, 'w:gz', format=tarfile.GNU_FORMAT) as tar:
+    for member, data in patched:
+        if data is not None:
+            tar.addfile(member, io.BytesIO(data))
+        else:
+            tar.addfile(member)
+PY
+
   # Get main entry from metadata
   main_entry=$(echo "$module_metadata_json" | python3 -c "import json, sys; print(json.load(sys.stdin).get('main', ''))")
 

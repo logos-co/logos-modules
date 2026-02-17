@@ -13,7 +13,7 @@ jobs:
     outputs:
       modules: ${{ steps.modules.outputs.modules }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: List modules
         id: modules
@@ -39,7 +39,7 @@ jobs:
     continue-on-error: true
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -59,7 +59,7 @@ jobs:
           mkdir -p "build-output/build-${{ matrix.variant.name }}/${{ matrix.module }}"
           cp -rL "${{ matrix.module }}/result/." "build-output/build-${{ matrix.variant.name }}/${{ matrix.module }}/"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: steps.build.outcome == 'success'
         with:
           name: build-${{ matrix.variant.name }}--${{ matrix.module }}
@@ -72,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
 
@@ -85,7 +85,7 @@ jobs:
           nix build .#lgx
           echo "LGX=$(readlink -f result/bin/lgx)" >> "$GITHUB_ENV"
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           path: artifacts
           pattern: build-*
