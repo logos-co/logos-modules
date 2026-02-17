@@ -11,7 +11,6 @@ set -x
 # Expected directory layout under ARTIFACTS_DIR:
 #   build-linux-amd64/<module>/lib/...
 #   build-linux-arm64/<module>/lib/...
-#   build-darwin-amd64/<module>/lib/...
 #   build-darwin-arm64/<module>/lib/...
 #
 # Module metadata is read from <module>/metadata.json in the repo checkout.
@@ -25,7 +24,7 @@ repo_dir="$(cd "$script_dir/.." && pwd)"
 output_dir="$repo_dir/output"
 mkdir -p "$output_dir"
 
-ALL_VARIANTS=("linux-amd64" "linux-arm64" "darwin-amd64" "darwin-arm64")
+ALL_VARIANTS=("linux-amd64" "linux-arm64" "darwin-arm64")
 
 if [[ ! -f "$repo_dir/.gitmodules" ]]; then
   echo "No .gitmodules found in $repo_dir" >&2
