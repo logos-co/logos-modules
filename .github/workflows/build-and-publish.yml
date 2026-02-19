@@ -157,8 +157,8 @@ jobs:
         run: |
           short_sha="${GITHUB_SHA::7}"
           date_str="$(date -u +%Y%m%d)"
-          tag="build-${date_str}-${short_sha}"
-          name="Build $(date -u +%Y-%m-%d) (${short_sha})"
+          tag="build-${date_str}-${short_sha}-${GITHUB_RUN_NUMBER}"
+          name="Build $(date -u +%Y-%m-%d) (${short_sha}) #${GITHUB_RUN_NUMBER}"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "name=$name" >> "$GITHUB_OUTPUT"
 
