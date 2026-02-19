@@ -163,6 +163,7 @@ jobs:
           echo "name=$name" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub release
+        if: github.ref == 'refs/heads/master'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
