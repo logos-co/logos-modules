@@ -26,19 +26,54 @@ jobs:
       - name: List modules
         id: modules
         run: |
-          all_modules=$(git config --file .gitmodules --get-regexp path | awk '{print $2}' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          # Build module list with flake references from submodule URLs and pinned commits
+          all_modules=$(python3 <<'PY'
+          import json, subprocess, re
+
+          lines = subprocess.check_output(
+              ["git", "config", "--file", ".gitmodules", "--get-regexp", r"submodule\..*\.path"],
+              text=True
+          ).strip().split("\n")
+
+          result = []
+          for line in lines:
+              if not line.strip():
+                  continue
+              key, path = line.split(None, 1)
+              name = re.match(r"submodule\.(.*)\.path", key).group(1)
+              url = subprocess.check_output(
+                  ["git", "config", "--file", ".gitmodules", f"submodule.{name}.url"],
+                  text=True
+              ).strip()
+              commit = subprocess.check_output(
+                  ["git", "ls-tree", "HEAD", path],
+                  text=True
+              ).strip().split()[2]
+
+              # Convert GitHub URL to flake reference
+              m = re.match(r"https?://github\.com/(.+?)(?:\.git)?$", url)
+              if not m:
+                  m = re.match(r"git@github\.com:(.+?)(?:\.git)?$", url)
+              if m:
+                  flake = f"github:{m.group(1)}/{commit}"
+              else:
+                  flake = f"git+{url}?rev={commit}"
+
+              result.append({"path": path, "flake": flake})
+
+          print(json.dumps(result))
+          PY
+          )
 
           include_input="${{ inputs.include }}"
           exclude_input="${{ inputs.exclude }}"
 
           if [[ -n "$include_input" ]]; then
-            # Filter to only included modules
             include_json=$(echo "$include_input" | tr ',' '\n' | sed 's/^ *//;s/ *$//' | jq -R -s -c 'split("\n") | map(select(length > 0))')
-            modules=$(echo "$all_modules" | jq -c --argjson inc "$include_json" '[.[] | select(. as $m | $inc | any(. == $m))]')
+            modules=$(echo "$all_modules" | jq -c --argjson inc "$include_json" '[.[] | select(.path as $p | $inc | any(. == $p))]')
           elif [[ -n "$exclude_input" ]]; then
-            # Filter out excluded modules
             exclude_json=$(echo "$exclude_input" | tr ',' '\n' | sed 's/^ *//;s/ *$//' | jq -R -s -c 'split("\n") | map(select(length > 0))')
-            modules=$(echo "$all_modules" | jq -c --argjson exc "$exclude_json" '[.[] | select(. as $m | $exc | any(. == $m) | not)]')
+            modules=$(echo "$all_modules" | jq -c --argjson exc "$exclude_json" '[.[] | select(.path as $p | $exc | any(. == $p) | not)]')
           else
             modules="$all_modules"
           fi
@@ -64,31 +99,26 @@ jobs:
     continue-on-error: true
 
     steps:
-      - uses: actions/checkout@v6
-        with:
-          submodules: recursive
-
       - uses: DeterminateSystems/nix-installer-action@main
 
       - uses: DeterminateSystems/magic-nix-cache-action@main
 
-      - name: Build ${{ matrix.module }}
+      - name: Build ${{ matrix.module.path }}
         id: build
         run: |
-          cd "${{ matrix.module }}"
-          nix bundle --bundler github:logos-co/nix-bundle-dir#qtPlugin -o result .#lib
+          nix bundle --bundler github:logos-co/nix-bundle-lgx#portable -o result '${{ matrix.module.flake }}#lib'
 
       - name: Collect output
         if: steps.build.outcome == 'success'
         run: |
-          mkdir -p "build-output/build-${{ matrix.variant.name }}/${{ matrix.module }}"
-          cp -rL "${{ matrix.module }}/result/." "build-output/build-${{ matrix.variant.name }}/${{ matrix.module }}/"
+          mkdir -p "lgx-output/${{ matrix.variant.name }}/${{ matrix.module.path }}"
+          cp result/*.lgx "lgx-output/${{ matrix.variant.name }}/${{ matrix.module.path }}/"
 
       - uses: actions/upload-artifact@v6
         if: steps.build.outcome == 'success'
         with:
-          name: build-${{ matrix.variant.name }}--${{ matrix.module }}
-          path: build-output/
+          name: lgx-${{ matrix.variant.name }}--${{ matrix.module.path }}
+          path: lgx-output/
           retention-days: 1
 
   package:
@@ -98,8 +128,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-        with:
-          submodules: true
 
       - uses: DeterminateSystems/nix-installer-action@main
 
@@ -113,7 +141,7 @@ jobs:
       - uses: actions/download-artifact@v7
         with:
           path: artifacts
-          pattern: build-*
+          pattern: lgx-*
           merge-multiple: true
 
       - name: Package modules
