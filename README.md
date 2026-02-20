@@ -29,6 +29,7 @@ to compile all modules in one go
 | logos-execution-zone | https://github.com/logos-blockchain/logos-execution-zone-module |
 | logos-blockchain-ui | https://github.com/logos-blockchain/logos-blockchain-ui |
 | logos-storage-module | https://github.com/logos-co/logos-storage-module |
+| logos-delivery-module | https://github.com/logos-co/logos-delivery-module |
 
 ## Requirements
 
