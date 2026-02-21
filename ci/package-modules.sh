@@ -181,13 +181,14 @@ PY
     lgx_file="${variant_lgx_map[$variant]}"
 
     # Read the per-variant main file from this variant's lgx manifest
-    variant_main=$(python3 - "$lgx_file" <<'PY'
+    variant_main=$(python3 - "$lgx_file" "$variant" <<'PY'
 import tarfile, json, sys
 with tarfile.open(sys.argv[1], 'r:gz') as tar:
     for member in tar.getmembers():
         if member.name == 'manifest.json':
             m = json.loads(tar.extractfile(member).read())
-            print(m.get('main', ''))
+            main = m.get('main', {})
+            print(main.get(sys.argv[2], ''))
             break
 PY
 )
@@ -215,21 +216,13 @@ with tarfile.open(lgx_path, 'r:gz') as tar:
 PY
 
     # Determine main file for lgx add
-    if [[ -n "$variant_main" && -f "$extract_dir/$variant_main" ]]; then
-      main_path="$variant_main"
-    else
-      # Fallback: first library file in the extracted directory
-      main_path=$(ls "$extract_dir" | head -n 1)
-      if [[ -n "$variant_main" ]]; then
-        echo "Warning: main '$variant_main' from manifest not found for $variant, falling back to $main_path"
-      fi
-    fi
-
-    if [[ -z "$main_path" ]]; then
-      echo "No files found in extracted variant $variant for $module" >&2
+    if [[ -z "$variant_main" || ! -f "$extract_dir/$variant_main" ]]; then
+      echo "ERROR: main file '${variant_main:-<unset>}' not found for variant $variant of $module, skipping variant." >&2
       rm -rf "$extract_dir"
       continue
     fi
+
+    main_path="$variant_main"
 
     echo "Adding variant $variant to ${package_name}.lgx (main: $main_path)"
     "$LGX" add "$lgx_package_path" \
