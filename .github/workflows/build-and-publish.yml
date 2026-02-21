@@ -106,7 +106,7 @@ jobs:
       - name: Build ${{ matrix.module.path }}
         id: build
         run: |
-          nix bundle --bundler github:logos-co/nix-bundle-lgx#portable -o result '${{ matrix.module.flake }}#lib'
+          nix bundle --bundler github:logos-co/nix-bundle-lgx#portable -o result '${{ matrix.module.flake }}#lib --refresh'
 
       - name: Collect output
         if: steps.build.outcome == 'success'
