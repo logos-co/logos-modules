@@ -30,6 +30,7 @@ to compile all modules in one go
 | logos-blockchain-ui | https://github.com/logos-blockchain/logos-blockchain-ui |
 | logos-storage-module | https://github.com/logos-co/logos-storage-module |
 | logos-delivery-module | https://github.com/logos-co/logos-delivery-module |
+| logos-storage-ui | https://github.com/logos-co/logos-storage-ui |
 
 ## Requirements
 
