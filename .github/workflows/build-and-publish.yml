@@ -1,0 +1,232 @@
+name: Build and Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      include:
+        description: 'Comma-separated list of modules to build (leave empty to build all)'
+        required: false
+        default: ''
+      exclude:
+        description: 'Comma-separated list of modules to exclude from build'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.modules.outputs.modules }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: List modules
+        id: modules
+        run: |
+          # Build module list with flake references from submodule URLs and pinned commits
+          all_modules=$(python3 <<'PY'
+          import json, subprocess, re
+
+          lines = subprocess.check_output(
+              ["git", "config", "--file", ".gitmodules", "--get-regexp", r"submodule\..*\.path"],
+              text=True
+          ).strip().split("\n")
+
+          result = []
+          for line in lines:
+              if not line.strip():
+                  continue
+              key, path = line.split(None, 1)
+              name = re.match(r"submodule\.(.*)\.path", key).group(1)
+              url = subprocess.check_output(
+                  ["git", "config", "--file", ".gitmodules", f"submodule.{name}.url"],
+                  text=True
+              ).strip()
+              commit = subprocess.check_output(
+                  ["git", "ls-tree", "HEAD", path],
+                  text=True
+              ).strip().split()[2]
+
+              # Convert GitHub URL to flake reference
+              m = re.match(r"https?://github\.com/(.+?)(?:\.git)?$", url)
+              if not m:
+                  m = re.match(r"git@github\.com:(.+?)(?:\.git)?$", url)
+              if m:
+                  flake = f"github:{m.group(1)}/{commit}"
+              else:
+                  flake = f"git+{url}?rev={commit}"
+
+              result.append({"path": path, "flake": flake})
+
+          print(json.dumps(result))
+          PY
+          )
+
+          include_input="${{ inputs.include }}"
+          exclude_input="${{ inputs.exclude }}"
+
+          if [[ -n "$include_input" ]]; then
+            include_json=$(echo "$include_input" | tr ',' '\n' | sed 's/^ *//;s/ *$//' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            modules=$(echo "$all_modules" | jq -c --argjson inc "$include_json" '[.[] | select(.path as $p | $inc | any(. == $p))]')
+          elif [[ -n "$exclude_input" ]]; then
+            exclude_json=$(echo "$exclude_input" | tr ',' '\n' | sed 's/^ *//;s/ *$//' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            modules=$(echo "$all_modules" | jq -c --argjson exc "$exclude_json" '[.[] | select(.path as $p | $exc | any(. == $p) | not)]')
+          else
+            modules="$all_modules"
+          fi
+
+          echo "Building modules: $modules"
+          echo "modules=$modules" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: discover
+    strategy:
+      fail-fast: false
+      matrix:
+        variant:
+          - os: ubuntu-24.04
+            name: linux-amd64
+          - os: ubuntu-24.04-arm
+            name: linux-arm64
+          - os: macos-15
+            name: darwin-arm64
+        module: ${{ fromJson(needs.discover.outputs.modules) }}
+
+    runs-on: ${{ matrix.variant.os }}
+    continue-on-error: true
+
+    steps:
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build ${{ matrix.module.path }}
+        id: build
+        run: |
+          nix bundle --bundler github:logos-co/nix-bundle-lgx#portable -o result '${{ matrix.module.flake }}#lib'
+
+      - name: Collect output
+        if: steps.build.outcome == 'success'
+        run: |
+          mkdir -p "lgx-output/${{ matrix.variant.name }}/${{ matrix.module.path }}"
+          cp result/*.lgx "lgx-output/${{ matrix.variant.name }}/${{ matrix.module.path }}/"
+
+      - uses: actions/upload-artifact@v6
+        if: steps.build.outcome == 'success'
+        with:
+          name: lgx-${{ matrix.variant.name }}--${{ matrix.module.path }}
+          path: lgx-output/
+          retention-days: 1
+
+  package:
+    needs: [discover, build]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build lgx tool
+        run: |
+          nix build .#lgx
+          echo "LGX=$(readlink -f result/bin/lgx)" >> "$GITHUB_ENV"
+
+      - uses: actions/download-artifact@v7
+        with:
+          path: artifacts
+          pattern: lgx-*
+          merge-multiple: true
+
+      - name: Package modules
+        run: |
+          export ARTIFACTS_DIR="artifacts"
+          bash ci/package-modules.sh
+
+      - name: Prepare release tag
+        id: tag
+        run: |
+          short_sha="${GITHUB_SHA::7}"
+          date_str="$(date -u +%Y%m%d)"
+          tag="build-${date_str}-${short_sha}-${GITHUB_RUN_NUMBER}"
+          name="Build $(date -u +%Y-%m-%d) (${short_sha}) #${GITHUB_RUN_NUMBER}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+          include="${{ inputs.include }}"
+          exclude="${{ inputs.exclude }}"
+          if [[ -n "$include" ]]; then
+            config="Modules: \`${include}\`"
+          elif [[ -n "$exclude" ]]; then
+            config="Modules: all (excluding: \`${exclude}\`)"
+          else
+            config="Modules: all"
+          fi
+          echo "config=$config" >> "$GITHUB_OUTPUT"
+
+      - name: Generate release table
+        id: table
+        env:
+          RELEASE_TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+
+          with open("output/list.json") as f:
+              modules = json.load(f)
+
+          repo = os.environ.get("GITHUB_REPOSITORY", "")
+          tag = os.environ.get("RELEASE_TAG", "")
+
+          all_variants = ["linux-amd64", "linux-arm64", "darwin-arm64"]
+          header = "| Module | " + " | ".join(all_variants) + " |"
+          sep = "|--------|" + "|".join([":---:" for _ in all_variants]) + "|"
+
+          rows = []
+          for m in modules:
+              name = m.get("moduleName", m.get("name", ""))
+              version = m.get("version", "")
+              label = f"{name} v{version}" if version else name
+              package = m.get("package", "")
+              if repo and tag and package:
+                  url = f"https://github.com/{repo}/releases/download/{tag}/{package}"
+                  label = f"[{label}]({url})"
+              variants = set(m.get("variants", []))
+              cells = " | ".join("\u2705" if v in variants else "\u274c" for v in all_variants)
+              rows.append(f"| {label} | {cells} |")
+
+          table = "\n".join([header, sep] + rows)
+
+          delim = "EOF_TABLE"
+          print(f"table<<{delim}")
+          print(table)
+          print(delim)
+          PY
+
+      - name: Create GitHub release
+        if: github.ref == 'refs/heads/master'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: ${{ steps.tag.outputs.name }}
+          body: |
+            Automated build from ${{ github.sha }}
+
+            ${{ steps.tag.outputs.config }}
+
+            ## Module Availability
+
+            ${{ steps.table.outputs.table }}
+          files: |
+            output/*.lgx
+            output/list.json
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
