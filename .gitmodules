@@ -10,9 +10,9 @@
 [submodule "logos-irc-module"]
 	path = logos-irc-module
 	url = https://github.com/logos-co/logos-irc-module
-[submodule "logos-package-manager"]
-	path = logos-package-manager
-	url = https://github.com/logos-co/logos-package-manager
+[submodule "logos-package-manager-module"]
+	path = logos-package-manager-module
+	url = https://github.com/logos-co/logos-package-manager-module
 [submodule "logos-capability-module"]
 	path = logos-capability-module
 	url = https://github.com/logos-co/logos-capability-module
@@ -31,3 +31,21 @@
 [submodule "logos-chatsdk-module"]
 	path = logos-chatsdk-module
 	url = https://github.com/logos-co/logos-chatsdk-module
+[submodule "logos-blockchain-module"]
+	path = logos-blockchain-module
+	url = https://github.com/logos-blockchain/logos-blockchain-module
+[submodule "logos-execution-zone-module"]
+	path = logos-execution-zone-module
+	url = https://github.com/logos-blockchain/logos-execution-zone-module
+[submodule "logos-blockchain-ui"]
+	path = logos-blockchain-ui
+	url = https://github.com/logos-blockchain/logos-blockchain-ui
+[submodule "logos-storage-module"]
+	path = logos-storage-module
+	url = https://github.com/logos-co/logos-storage-module
+[submodule "logos-delivery-module"]
+	path = logos-delivery-module
+	url = https://github.com/logos-co/logos-delivery-module.git
+[submodule "logos-storage-ui"]
+	path = logos-storage-ui
+	url = https://github.com/logos-co/logos-storage-ui

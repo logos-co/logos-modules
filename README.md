@@ -19,10 +19,22 @@ to compile all modules in one go
 | logos-wallet-module | https://github.com/logos-co/logos-wallet-module |
 | logos-chat-module | https://github.com/logos-co/logos-chat-module |
 | logos-irc-module | https://github.com/logos-co/logos-irc-module |
-| logos-package-manager | https://github.com/logos-co/logos-package-manager |
+| logos-package-manager-module | https://github.com/logos-co/logos-package-manager-module |
 | logos-capability-module | https://github.com/logos-co/logos-capability-module |
 | logos-accounts-module | https://github.com/logos-co/logos-accounts-module |
 | logos-wallet-ui | https://github.com/logos-co/logos-wallet-ui |
 | logos-chat-ui | https://github.com/logos-co/logos-chat-ui |
 | logos-accounts-ui | https://github.com/logos-co/logos-accounts-ui |
 | logos-chatsdk-module | https://github.com/logos-co/logos-chatsdk-module | 
+| logos-blockchain | https://github.com/logos-blockchain/logos-blockchain-module |
+| logos-execution-zone | https://github.com/logos-blockchain/logos-execution-zone-module |
+| logos-blockchain-ui | https://github.com/logos-blockchain/logos-blockchain-ui |
+| logos-storage-module | https://github.com/logos-co/logos-storage-module |
+| logos-delivery-module | https://github.com/logos-co/logos-delivery-module |
+| logos-storage-ui | https://github.com/logos-co/logos-storage-ui |
+
+## Requirements
+
+- Modules must support compiling with `nix build '.#lib'`
+- Modules output must go into `result/lib/*`
+- Modules must have a `metadata.json`. If there are multiple files then the `main` field must be defined.
