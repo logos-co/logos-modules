@@ -25,8 +25,9 @@ to compile all modules in one go
 | logos-wallet-ui | https://github.com/logos-co/logos-wallet-ui |
 | logos-chat-ui | https://github.com/logos-co/logos-chat-ui |
 | logos-accounts-ui | https://github.com/logos-co/logos-accounts-ui |
-| logos-blockchain | https://github.com/logos-blockchain/logos-blockchain-module |
-| logos-execution-zone | https://github.com/logos-blockchain/logos-execution-zone-module |
+| logos-blockchain-module | https://github.com/logos-blockchain/logos-blockchain-module |
+| logos-execution-zone-module | https://github.com/logos-blockchain/logos-execution-zone-module |
+| logos-execution-zone-wallet-ui | https://github.com/logos-blockchain/logos-execution-zone-wallet-ui |
 | logos-blockchain-ui | https://github.com/logos-blockchain/logos-blockchain-ui |
 | logos-storage-module | https://github.com/logos-co/logos-storage-module |
 | logos-delivery-module | https://github.com/logos-co/logos-delivery-module |

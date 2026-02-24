@@ -46,3 +46,6 @@
 [submodule "logos-storage-ui"]
 	path = logos-storage-ui
 	url = https://github.com/logos-co/logos-storage-ui
+[submodule "logos-execution-zone-wallet-ui"]
+	path = logos-execution-zone-wallet-ui
+	url = https://github.com/logos-blockchain/logos-execution-zone-wallet-ui
