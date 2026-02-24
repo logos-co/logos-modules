@@ -161,7 +161,7 @@ patched = []
 for member, data in members:
     if member.name == 'manifest.json':
         manifest = json.loads(data)
-        for key in ('name', 'version', 'description', 'author', 'type', 'category', 'dependencies'):
+        for key in ('name', 'version', 'description', 'author', 'type', 'category', 'dependencies', 'icon'):
             if metadata.get(key):
                 manifest[key] = metadata[key]
         data = json.dumps(manifest, indent=2).encode()
