@@ -52,3 +52,6 @@
 [submodule "logos-chatsdk-ui"]
 	path = logos-chatsdk-ui
 	url = https://github.com/logos-co/logos-chatsdk-ui
+[submodule "logos-execution-zone-wallet-ui"]
+	path = logos-execution-zone-wallet-ui
+	url = https://github.com/logos-blockchain/logos-execution-zone-wallet-ui
