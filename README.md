@@ -32,6 +32,8 @@ to compile all modules in one go
 | logos-storage-module | https://github.com/logos-co/logos-storage-module |
 | logos-delivery-module | https://github.com/logos-co/logos-delivery-module |
 | logos-storage-ui | https://github.com/logos-co/logos-storage-ui |
+| logos-chatsdk-module | https://github.com/logos-co/logos-chatsdk-module |
+| logos-chatsdk-ui | https://github.com/logos-co/logos-chatsdk-ui |
 
 ## Requirements
 
