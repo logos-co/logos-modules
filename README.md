@@ -23,7 +23,7 @@ to compile all modules in one go
 | logos-capability-module | https://github.com/logos-co/logos-capability-module |
 | logos-accounts-module | https://github.com/logos-co/logos-accounts-module |
 | logos-wallet-ui | https://github.com/logos-co/logos-wallet-ui |
-| logos-chat-ui | https://github.com/logos-co/logos-chat-ui |
+| logos-chat-legacy-ui | https://github.com/logos-co/logos-chat-legacy-ui |
 | logos-accounts-ui | https://github.com/logos-co/logos-accounts-ui |
 | logos-blockchain-module | https://github.com/logos-blockchain/logos-blockchain-module |
 | logos-execution-zone-module | https://github.com/logos-blockchain/logos-execution-zone-module |

@@ -22,9 +22,9 @@
 [submodule "logos-wallet-ui"]
 	path = logos-wallet-ui
 	url = https://github.com/logos-co/logos-wallet-ui
-[submodule "logos-chat-ui"]
-	path = logos-chat-ui
-	url = https://github.com/logos-co/logos-chat-ui
+[submodule "logos-chat-legacy-ui"]
+	path = logos-chat-legacy-ui
+	url = https://github.com/logos-co/logos-chat-legacy-ui
 [submodule "logos-accounts-ui"]
 	path = logos-accounts-ui
 	url = https://github.com/logos-co/logos-accounts-ui
