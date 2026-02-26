@@ -4,9 +4,9 @@
 [submodule "logos-wallet-module"]
 	path = logos-wallet-module
 	url = https://github.com/logos-co/logos-wallet-module
-[submodule "logos-chat-module"]
-	path = logos-chat-module
-	url = https://github.com/logos-co/logos-chat-module
+[submodule "logos-chat-legacy-module"]
+	path = logos-chat-legacy-module
+	url = https://github.com/logos-co/logos-chat-legacy-module
 [submodule "logos-irc-module"]
 	path = logos-irc-module
 	url = https://github.com/logos-co/logos-irc-module

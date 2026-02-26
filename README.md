@@ -17,7 +17,7 @@ to compile all modules in one go
 | --- | --- |
 | logos-waku-module | https://github.com/logos-co/logos-waku-module |
 | logos-wallet-module | https://github.com/logos-co/logos-wallet-module |
-| logos-chat-module | https://github.com/logos-co/logos-chat-module |
+| logos-chat-legacy-module | https://github.com/logos-co/logos-chat-legacy-module |
 | logos-irc-module | https://github.com/logos-co/logos-irc-module |
 | logos-package-manager-module | https://github.com/logos-co/logos-package-manager-module |
 | logos-capability-module | https://github.com/logos-co/logos-capability-module |
