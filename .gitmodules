@@ -55,3 +55,7 @@
 [submodule "logos-execution-zone-wallet-ui"]
 	path = logos-execution-zone-wallet-ui
 	url = https://github.com/logos-blockchain/logos-execution-zone-wallet-ui
+[submodule "logos-chat-legacy-ui-testnet-mix-demo"]
+	path = logos-chat-legacy-ui-testnet-mix-demo
+	url = https://github.com/logos-co/logos-chat-legacy-ui
+	branch = logos-testnet-mix-demo
