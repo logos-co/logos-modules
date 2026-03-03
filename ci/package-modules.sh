@@ -213,6 +213,7 @@ with tarfile.open(lgx_path, 'r:gz') as tar:
             with tar.extractfile(member) as src:
                 with open(target, 'wb') as dst:
                     dst.write(src.read())
+            os.chmod(target, member.mode)
 PY
 
     # Determine main file for lgx add
