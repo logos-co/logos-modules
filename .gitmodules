@@ -63,3 +63,7 @@
 	path = logos-chat-legacy-module-testnet-mix-demo
 	url = https://github.com/logos-co/logos-chat-legacy-module
 	branch = logos-testnet-demo
+[submodule "logos-waku-module-testnet-mix-demo"]
+	path = logos-waku-module-testnet-mix-demo
+	url = https://github.com/logos-co/logos-waku-module
+	branch = logos-testnet-demo
