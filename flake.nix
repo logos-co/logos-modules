@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    logos-package.url = "github:logos-co/logos-package/fix/preserve-file-permissions";
+    logos-package.url = "github:logos-co/logos-package";
   };
 
   outputs = { self, nixpkgs, logos-package }:
