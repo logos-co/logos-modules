@@ -2,11 +2,13 @@
   description = "Logos Modules - Build system for creating LGX packages";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # Follow the same nixpkgs as logos-cpp-sdk to ensure Qt compatibility
+    nixpkgs.follows = "logos-cpp-sdk/nixpkgs";
+    logos-cpp-sdk.url = "github:logos-co/logos-cpp-sdk";
     logos-package.url = "github:logos-co/logos-package";
   };
 
-  outputs = { self, nixpkgs, logos-package }:
+  outputs = { self, nixpkgs, logos-cpp-sdk, logos-package }:
     let
       systems = [ "aarch64-darwin" "x86_64-darwin" "aarch64-linux" "x86_64-linux" ];
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f {
