@@ -5,7 +5,7 @@
     # Follow the same nixpkgs as logos-cpp-sdk to ensure Qt compatibility
     nixpkgs.follows = "logos-cpp-sdk/nixpkgs";
     logos-cpp-sdk.url = "github:logos-co/logos-cpp-sdk";
-    logos-package.url = "github:logos-co/logos-package";
+    logos-package.url = "github:logos-co/logos-package/add-merge-command";
   };
 
   outputs = { self, nixpkgs, logos-cpp-sdk, logos-package }:
