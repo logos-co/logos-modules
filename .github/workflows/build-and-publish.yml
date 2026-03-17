@@ -174,12 +174,15 @@ jobs:
         id: table
         env:
           RELEASE_TAG: ${{ steps.tag.outputs.tag }}
+          ALL_MODULES: ${{ needs.discover.outputs.modules }}
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os
 
           with open("output/list.json") as f:
-              modules = json.load(f)
+              packaged = {m["name"]: m for m in json.load(f)}
+
+          all_modules = json.loads(os.environ["ALL_MODULES"])
 
           repo = os.environ.get("GITHUB_REPOSITORY", "")
           tag = os.environ.get("RELEASE_TAG", "")
@@ -189,15 +192,21 @@ jobs:
           sep = "|--------|" + "|".join([":---:" for _ in all_variants]) + "|"
 
           rows = []
-          for m in modules:
-              name = m.get("moduleName", m.get("name", ""))
-              version = m.get("version", "")
-              label = f"{name} v{version}" if version else name
-              package = m.get("package", "")
-              if repo and tag and package:
-                  url = f"https://github.com/{repo}/releases/download/{tag}/{package}"
-                  label = f"[{label}]({url})"
-              variants = set(m.get("variants", []))
+          for mod in all_modules:
+              path = mod["path"]
+              m = packaged.get(path)
+              if m:
+                  name = m.get("moduleName", m.get("name", path))
+                  version = m.get("version", "")
+                  label = f"{name} v{version}" if version else name
+                  package = m.get("package", "")
+                  if repo and tag and package:
+                      url = f"https://github.com/{repo}/releases/download/{tag}/{package}"
+                      label = f"[{label}]({url})"
+                  variants = set(m.get("variants", []))
+              else:
+                  label = path
+                  variants = set()
               cells = " | ".join("\u2705" if v in variants else "\u274c" for v in all_variants)
               rows.append(f"| {label} | {cells} |")
 
