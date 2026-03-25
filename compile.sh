@@ -84,7 +84,9 @@ for raw in entries:
     except json.JSONDecodeError:
         metadata = {}
 
-    item = {"name": name, "package": package_filename}
+    # Use the module name from metadata as the canonical name (matches manifest.json)
+    canonical_name = metadata.get("name", name)
+    item = {"name": canonical_name, "package": package_filename}
     if "type" in metadata:
         item["type"] = metadata["type"]
     if "name" in metadata:
@@ -100,7 +102,7 @@ for raw in entries:
     if metadata.get("version"):
         item["version"] = metadata["version"]
 
-    result_index[name] = item
+    result_index[canonical_name] = item
 
 result = [result_index[k] for k in sorted(result_index)]
 os.makedirs(os.path.dirname(list_path), exist_ok=True)
