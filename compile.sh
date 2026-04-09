@@ -55,7 +55,18 @@ except:
 PY
 )
 
-    module_entries+=("$module::$module_metadata_json::${package_name}.lgx")
+    # Extract manifest from the built lgx package
+    module_manifest_json=$(python3 - "$lgx_file" <<'PY'
+import tarfile, json, sys
+with tarfile.open(sys.argv[1], 'r:gz') as tar:
+    for member in tar.getmembers():
+        if member.name == 'manifest.json':
+            print(tar.extractfile(member).read().decode())
+            break
+PY
+)
+
+    module_entries+=("$module::$module_metadata_json::${package_name}.lgx::${module_manifest_json}")
   else
     echo "Failed building $module" >&2
     exit 1
@@ -74,17 +85,26 @@ result_index = {}
 for raw in entries:
     if "::" not in raw:
         continue
-    parts = raw.split("::", 2)
-    if len(parts) != 3:
+    parts = raw.split("::", 3)
+    if len(parts) < 3:
         continue
 
-    name, metadata_json, package_filename = parts
+    name, metadata_json, package_filename = parts[0], parts[1], parts[2]
+    manifest_json_str = parts[3] if len(parts) > 3 else ""
+
     try:
         metadata = json.loads(metadata_json)
     except json.JSONDecodeError:
         metadata = {}
 
+    try:
+        manifest = json.loads(manifest_json_str) if manifest_json_str else {}
+    except json.JSONDecodeError:
+        manifest = {}
+
     item = {"name": name, "package": package_filename}
+    if manifest:
+        item["manifest"] = manifest
     if "type" in metadata:
         item["type"] = metadata["type"]
     if "name" in metadata:

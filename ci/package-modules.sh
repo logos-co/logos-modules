@@ -90,8 +90,8 @@ PY
 
   echo "Created multi-variant package: ${package_name}.lgx"
 
-  # Extract manifest metadata for list.json generation
-  manifest_json=$(python3 - "$first_lgx" <<'PY'
+  # Extract manifest metadata from the merged package for list.json generation
+  manifest_json=$(python3 - "$lgx_package_path" <<'PY'
 import tarfile, json, sys
 with tarfile.open(sys.argv[1], 'r:gz') as tar:
     for member in tar.getmembers():
@@ -133,6 +133,7 @@ for raw in entries:
 
     item = {"name": name}
     item["package"] = package_filename
+    item["manifest"] = metadata
 
     if "type" in metadata:
         item["type"] = metadata["type"]
