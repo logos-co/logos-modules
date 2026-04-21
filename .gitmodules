@@ -1,30 +1,12 @@
-[submodule "logos-waku-module"]
-	path = logos-waku-module
-	url = https://github.com/logos-co/logos-waku-module
 [submodule "logos-wallet-module"]
 	path = logos-wallet-module
 	url = https://github.com/logos-co/logos-wallet-module
-[submodule "logos-chat-legacy-module"]
-	path = logos-chat-legacy-module
-	url = https://github.com/logos-co/logos-chat-legacy-module
-[submodule "logos-irc-module"]
-	path = logos-irc-module
-	url = https://github.com/logos-co/logos-irc-module
-[submodule "logos-package-manager-module"]
-	path = logos-package-manager-module
-	url = https://github.com/logos-co/logos-package-manager-module
-[submodule "logos-capability-module"]
-	path = logos-capability-module
-	url = https://github.com/logos-co/logos-capability-module
 [submodule "logos-accounts-module"]
 	path = logos-accounts-module
 	url = https://github.com/logos-co/logos-accounts-module
 [submodule "logos-wallet-ui"]
 	path = logos-wallet-ui
 	url = https://github.com/logos-co/logos-wallet-ui
-[submodule "logos-chat-legacy-ui"]
-	path = logos-chat-legacy-ui
-	url = https://github.com/logos-co/logos-chat-legacy-ui
 [submodule "logos-accounts-ui"]
 	path = logos-accounts-ui
 	url = https://github.com/logos-co/logos-accounts-ui
@@ -55,15 +37,3 @@
 [submodule "logos-execution-zone-wallet-ui"]
 	path = logos-execution-zone-wallet-ui
 	url = https://github.com/logos-blockchain/logos-execution-zone-wallet-ui
-[submodule "logos-chat-legacy-ui-testnet-mix-demo"]
-	path = logos-chat-legacy-ui-testnet-mix-demo
-	url = https://github.com/logos-co/logos-chat-legacy-ui
-	branch = logos-testnet-mix-demo
-[submodule "logos-chat-legacy-module-testnet-mix-demo"]
-	path = logos-chat-legacy-module-testnet-mix-demo
-	url = https://github.com/logos-co/logos-chat-legacy-module
-	branch = logos-testnet-demo
-[submodule "logos-waku-module-testnet-mix-demo"]
-	path = logos-waku-module-testnet-mix-demo
-	url = https://github.com/logos-co/logos-waku-module
-	branch = logos-testnet-demo
