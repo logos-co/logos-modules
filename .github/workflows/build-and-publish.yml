@@ -3,6 +3,11 @@ name: Build and Publish
 on:
   workflow_dispatch:
     inputs:
+      publish:
+        description: 'Publish artifacts as a prerelease (master branch only)'
+        required: false
+        default: false
+        type: boolean
       include:
         description: 'Comma-separated list of modules to build (leave empty to build all)'
         required: false
@@ -219,7 +224,7 @@ jobs:
           PY
 
       - name: Create GitHub release
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' && github.event.inputs.publish == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
