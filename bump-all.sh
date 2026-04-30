@@ -75,6 +75,7 @@ for module in "${modules[@]}"; do
 
   if git -C "$module" checkout --quiet --detach "$new_sha"; then
     echo "  + updated to origin/$target_branch ${old_sha:0:12} -> ${new_sha:0:12}"
+    git -C "$module" branch -f "$target_branch" "$new_sha" 2>/dev/null || true
     ((updated+=1))
   else
     echo "  ! checkout failed"
