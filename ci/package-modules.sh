@@ -105,9 +105,16 @@ PY
 
   package_size=$(python3 -c 'import os,sys; print(os.path.getsize(sys.argv[1]))' "$lgx_package_path")
 
-  # Date the parent repo last bumped this submodule pointer; avoids needing
-  # the submodule itself to be checked out in CI.
-  package_date=$(TZ=UTC git -C "$repo_dir" log -1 --date=format:'%Y-%m-%dT%H:%M:%SZ' --format=%cd -- "$module")
+  # Date of the commit the submodule pointer references — i.e. when the
+  # code the user actually downloads was authored.
+  if [[ ! -e "$repo_dir/$module/.git" ]]; then
+    echo "Error: submodule $module is not checked out (no .git under $repo_dir/$module)." >&2
+    echo "       Run 'git submodule update --init --recursive' or set 'submodules: true'" >&2
+    echo "       on the actions/checkout step." >&2
+    exit 1
+  fi
+  package_date=$(TZ=UTC git -C "$repo_dir/$module" log -1 \
+    --date=format:'%Y-%m-%dT%H:%M:%SZ' --format=%cd)
 
   module_entries+=("$module::$manifest_json::${package_name}.lgx::${variants_csv}::${package_size}::${package_date}")
 done
