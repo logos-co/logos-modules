@@ -102,7 +102,15 @@ PY
 )
 
   variants_csv=$(IFS=,; echo "${available_variants[*]}")
-  module_entries+=("$module::$manifest_json::${package_name}.lgx::${variants_csv}")
+
+  package_size=$(python3 -c 'import os,sys; print(os.path.getsize(sys.argv[1]))' "$lgx_package_path")
+
+  # Use the committer date of the submodule commit that logos-modules pins
+  # for this path
+  sha=$(git -C "$repo_dir" rev-parse "HEAD:$module")
+  package_date=$(TZ=UTC git -C "$repo_dir/$module" log -1 --date=format:'%Y-%m-%dT%H:%M:%SZ' --format=%cd "$sha")
+
+  module_entries+=("$module::$manifest_json::${package_name}.lgx::${variants_csv}::${package_size}::${package_date}")
 done
 
 # Generate list.json
@@ -119,12 +127,14 @@ result_index = {}
 for raw in entries:
     if "::" not in raw:
         continue
-    parts = raw.split("::", 3)
+    parts = raw.split("::", 5)
     if len(parts) < 3:
         continue
 
     name, metadata_json, package_filename = parts[0], parts[1], parts[2]
     variants_csv = parts[3] if len(parts) > 3 else ""
+    size_str     = parts[4] if len(parts) > 4 else ""
+    date_str     = parts[5] if len(parts) > 5 else ""
 
     try:
         metadata = json.loads(metadata_json)
@@ -151,6 +161,13 @@ for raw in entries:
         item["version"] = metadata["version"]
     if variants_csv:
         item["variants"] = [v for v in variants_csv.split(",") if v]
+    if size_str:
+        try:
+            item["size"] = int(size_str)
+        except ValueError:
+            pass
+    if date_str:
+        item["dateUpdated"] = date_str
 
     result_index[name] = item
 
