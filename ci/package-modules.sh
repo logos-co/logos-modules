@@ -105,10 +105,9 @@ PY
 
   package_size=$(python3 -c 'import os,sys; print(os.path.getsize(sys.argv[1]))' "$lgx_package_path")
 
-  # Use the committer date of the submodule commit that logos-modules pins
-  # for this path
-  sha=$(git -C "$repo_dir" rev-parse "HEAD:$module")
-  package_date=$(TZ=UTC git -C "$repo_dir/$module" log -1 --date=format:'%Y-%m-%dT%H:%M:%SZ' --format=%cd "$sha")
+  # Date the parent repo last bumped this submodule pointer; avoids needing
+  # the submodule itself to be checked out in CI.
+  package_date=$(TZ=UTC git -C "$repo_dir" log -1 --date=format:'%Y-%m-%dT%H:%M:%SZ' --format=%cd -- "$module")
 
   module_entries+=("$module::$manifest_json::${package_name}.lgx::${variants_csv}::${package_size}::${package_date}")
 done
