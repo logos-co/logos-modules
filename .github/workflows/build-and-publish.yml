@@ -3,6 +3,11 @@ name: Build and Publish
 on:
   workflow_dispatch:
     inputs:
+      publish:
+        description: 'Publish artifacts as a prerelease'
+        required: false
+        default: false
+        type: boolean
       include:
         description: 'Comma-separated list of modules to build (leave empty to build all)'
         required: false
@@ -106,7 +111,7 @@ jobs:
       - name: Build ${{ matrix.module.path }}
         id: build
         run: |
-          nix bundle --bundler github:logos-co/nix-bundle-lgx#portable -o result '${{ matrix.module.flake }}#lib'
+          nix build -o result '${{ matrix.module.flake }}#lgx-portable'
 
       - name: Collect output
         if: steps.build.outcome == 'success'
@@ -223,13 +228,14 @@ jobs:
           PY
 
       - name: Create GitHub release
-        if: github.ref == 'refs/heads/master'
+        if: github.event.inputs.publish == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: ${{ steps.tag.outputs.name }}
           body: |
             Automated build from ${{ github.sha }}
+            Branch: `${{ github.ref_name }}`
 
             ${{ steps.tag.outputs.config }}
 

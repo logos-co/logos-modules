@@ -8,8 +8,6 @@ cd "$script_dir"
 base_libraries_dir="$script_dir/libraries"
 list_json_path="$base_libraries_dir/list.json"
 
-BUNDLER="${BUNDLER:-github:logos-co/nix-bundle-lgx#portable}"
-
 if [[ ! -f .gitmodules ]]; then
   echo "No .gitmodules found in $script_dir" >&2
   exit 1
@@ -29,7 +27,7 @@ module_entries=()
 
 for module in $modules; do
   echo "Building $module..."
-  if (cd "$module" && nix bundle --extra-experimental-features 'nix-command flakes' --bundler "$BUNDLER" -o result .#lib); then
+  if (cd "$module" && nix build --extra-experimental-features 'nix-command flakes' -o result .#lgx-portable); then
     echo "Built $module"
 
     lgx_file=$(find "$script_dir/$module/result" -maxdepth 1 -name '*.lgx' 2>/dev/null | head -n 1)
